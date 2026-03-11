@@ -44,6 +44,24 @@ app.post("/api/me",(req,res)=>{
 
 })
 
+app.get("/api/subjects",(req,res)=>{
+
+ const fs = require("fs")
+
+ try{
+
+  const subjects = fs.readdirSync("data")
+
+  res.json(subjects)
+
+ }catch(err){
+
+  res.json([])
+
+ }
+
+})
+
 app.post(`/bot${BOT_TOKEN}`, (req,res)=>{
  bot.processUpdate(req.body)
  res.sendStatus(200)

@@ -68,7 +68,7 @@ async function loadUser(){
 
 }
 
-function renderApp(data){
+async function renderApp(data){
 
  const container = document.getElementById("user")
 
@@ -76,17 +76,41 @@ function renderApp(data){
 
   container.innerHTML = `
   <h2>Админ панель</h2>
-  <p>Вы вошли как администратор</p>
+  <button onclick="loadSubjects()">📚 Список предметов</button>
   `
 
  }else{
 
   container.innerHTML = `
   <h2>Лекции</h2>
-  <p>Добро пожаловать ${user.first_name}</p>
+  <button onclick="loadSubjects()">📚 Открыть предметы</button>
   `
 
  }
+
+}
+
+async function loadSubjects(){
+
+ const res = await fetch("/api/subjects")
+ const subjects = await res.json()
+
+ const container = document.getElementById("user")
+
+ if(subjects.length === 0){
+
+  container.innerHTML = "<p>❌ Пока нет предметов</p>"
+  return
+
+ }
+
+ let html = "<h2>📚 Предметы</h2>"
+
+ subjects.forEach(s=>{
+  html += `<div style="padding:10px;border:1px solid #ddd;margin:5px">${s}</div>`
+ })
+
+ container.innerHTML = html
 
 }
 
