@@ -5,18 +5,17 @@ const path = require("path")
 const bodyParser = require("body-parser")
 
 const { bot } = require("./index")
+const { BOT_TOKEN } = require("./config")
 
 const app = express()
 
 app.use(bodyParser.json())
 
-// WEBHOOK endpoint
-app.post(`/bot${process.env.BOT_TOKEN}`, (req,res)=>{
+app.post(`/bot${BOT_TOKEN}`, (req,res)=>{
  bot.processUpdate(req.body)
  res.sendStatus(200)
 })
 
-// MINI APP
 app.use(express.static(path.join(__dirname,"webapp")))
 
 app.get("/",(req,res)=>{
@@ -29,7 +28,7 @@ app.listen(PORT, async ()=>{
 
  console.log("🌐 Server started")
 
- const url = `https://app.kstubot.ru/bot${process.env.BOT_TOKEN}`
+ const url = `https://app.kstubot.ru/bot${BOT_TOKEN}`
 
  await bot.setWebHook(url)
 
