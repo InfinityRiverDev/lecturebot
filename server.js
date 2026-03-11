@@ -131,7 +131,6 @@ app.get("/api/lectures/:subject",(req,res)=>{
  const fs = require("fs")
 
  const subject = req.params.subject
- const mode = req.body.mode
 
  try{
 
