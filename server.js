@@ -49,6 +49,8 @@ app.post("/api/me",(req,res)=>{
 
 app.post("/api/upload-lecture", upload.single("audio"), async (req,res)=>{
 
+ const mode = req.body.mode || "raw"
+
  const fs = require("fs")
  const axios = require("axios")
 
