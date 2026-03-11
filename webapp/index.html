@@ -43,23 +43,54 @@ tg.expand()
 
 const user = tg.initDataUnsafe?.user
 
-if(user){
+if(!user){
 
-document.getElementById("user").innerHTML = `
-<b>ID:</b> ${user.id}<br>
-<b>Username:</b> ${user.username}<br>
-<b>Name:</b> ${user.first_name}
-`
-
-}else{
-
-document.getElementById("user").innerHTML = `
-❌ Telegram не передал данные пользователя.
-
-Откройте Mini App через кнопку бота.
-`
+ document.body.innerHTML="Откройте приложение через Telegram"
+ throw new Error("No Telegram user")
 
 }
+
+async function loadUser(){
+
+ const response = await fetch("/api/me",{
+  method:"POST",
+  headers:{
+   "Content-Type":"application/json"
+  },
+  body:JSON.stringify({
+   id:user.id
+  })
+ })
+
+ const data = await response.json()
+
+ renderApp(data)
+
+}
+
+function renderApp(data){
+
+ const container = document.getElementById("user")
+
+ if(data.role === "admin"){
+
+  container.innerHTML = `
+  <h2>Админ панель</h2>
+  <p>Вы вошли как администратор</p>
+  `
+
+ }else{
+
+  container.innerHTML = `
+  <h2>Лекции</h2>
+  <p>Добро пожаловать ${user.first_name}</p>
+  `
+
+ }
+
+}
+
+loadUser()
 
 </script>
 
