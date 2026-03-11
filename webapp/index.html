@@ -1,18 +1,44 @@
 <!DOCTYPE html>
 <html>
 <head>
+
 <meta charset="UTF-8">
 <title>KSTU Lectures</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-<link rel="stylesheet" href="style.css">
+<style>
+
+body{
+ background:#0f172a;
+ color:white;
+ font-family:sans-serif;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ height:100vh;
+ flex-direction:column;
+}
+
+.card{
+ background:#1e293b;
+ padding:30px;
+ border-radius:15px;
+ text-align:center;
+}
+
+</style>
+
 </head>
 
 <body>
 
-<div id="app">
-<h2>Загрузка...</h2>
+<div class="card">
+
+<h2>Mini App запущен 🚀</h2>
+
+<div id="user"></div>
+
 </div>
 
 <script src="app.js"></script>
