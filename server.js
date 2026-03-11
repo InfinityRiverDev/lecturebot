@@ -62,12 +62,33 @@ app.get("/api/subjects",(req,res)=>{
 
 })
 
+app.get("/api/lectures/:subject",(req,res)=>{
+
+ const fs = require("fs")
+
+ const subject = req.params.subject
+
+ try{
+
+  const lectures = fs.readdirSync(`data/${subject}`)
+
+  res.json(lectures)
+
+ }catch(err){
+
+  res.json([])
+
+ }
+
+})
+
 app.post(`/bot${BOT_TOKEN}`, (req,res)=>{
  bot.processUpdate(req.body)
  res.sendStatus(200)
 })
 
 app.use(express.static(path.join(__dirname,"webapp")))
+app.use("/data",express.static("data"))
 
 app.get("/",(req,res)=>{
  res.sendFile(path.join(__dirname,"webapp","index.html"))
