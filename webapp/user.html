@@ -2,31 +2,52 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<link rel="stylesheet" href="style.css">
+<title>Лекции</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+body{
+ font-family:Arial;
+ background:#0f172a;
+ color:white;
+ padding:20px;
+}
+
+button{
+ padding:10px 20px;
+ margin:5px;
+ border:none;
+ border-radius:8px;
+ background:#2563eb;
+ color:white;
+ cursor:pointer;
+}
+</style>
 </head>
 
 <body>
 
-<h2>Предметы</h2>
+<h2>📚 Предметы</h2>
 
 <div id="subjects"></div>
 
 <script>
 
-async function load(){
+async function loadSubjects(){
 
  const res = await fetch("/api/subjects")
  const subjects = await res.json()
 
  const container = document.getElementById("subjects")
 
- subjects.forEach(sub=>{
+ subjects.forEach(subject=>{
 
   const btn = document.createElement("button")
 
-  btn.innerText=sub
+  btn.innerText = subject
 
-  btn.onclick=()=>loadLectures(sub)
+  btn.onclick = ()=>loadLectures(subject)
 
   container.appendChild(btn)
 
@@ -42,27 +63,27 @@ async function loadLectures(subject){
 
  const container = document.getElementById("subjects")
 
- container.innerHTML=""
+ container.innerHTML = "<h2>"+subject+"</h2>"
 
  lectures.forEach(file=>{
 
-  const link=document.createElement("a")
+  const btn = document.createElement("button")
 
-  link.href="/api/lecture/"+subject+"/"+file
+  btn.innerText = file.replace(".pdf","")
 
-  link.innerText=file
+  btn.onclick = ()=>{
 
-  link.target="_blank"
+   window.open("/api/lecture/"+subject+"/"+file)
 
-  container.appendChild(link)
+  }
 
-  container.appendChild(document.createElement("br"))
+  container.appendChild(btn)
 
  })
 
 }
 
-load()
+loadSubjects()
 
 </script>
 

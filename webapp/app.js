@@ -1,25 +1,23 @@
 const tg = window.Telegram.WebApp
 
-tg.expand()
 tg.ready()
+tg.expand()
 
-let userId = null
+const user = tg.initDataUnsafe?.user
 
-if(tg.initDataUnsafe && tg.initDataUnsafe.user){
- userId = tg.initDataUnsafe.user.id
-}else{
+if(!user){
 
- document.body.innerHTML = `
- <div style="padding:40px;text-align:center;font-family:sans-serif">
+ document.getElementById("app").innerHTML = `
  <h2>Откройте приложение через Telegram</h2>
- </div>
  `
 
- throw new Error("Telegram user not found")
+ throw new Error("No Telegram user")
 
 }
 
+const userId = user.id
 
+init()
 
 async function init(){
 
@@ -35,24 +33,12 @@ async function init(){
 
  if(!data.registered){
 
-  document.body.innerHTML = `
-  <div style="padding:30px;text-align:center;font-family:sans-serif">
-
+  document.getElementById("app").innerHTML = `
   <h2>Вы не зарегистрированы</h2>
-
-  <p>Напишите боту команду</p>
-
-  <b>/start</b>
-
-  </div>
+  <p>Напишите боту команду /start</p>
   `
-
   return
  }
-
-
-
- // проверяем админ ли пользователь
 
  const adminCheck = await fetch("/api/checkAdmin",{
   method:"POST",
@@ -62,9 +48,9 @@ async function init(){
   body:JSON.stringify({userId})
  })
 
- const adminData = await adminCheck.json()
+ const admin = await adminCheck.json()
 
- if(adminData.admin){
+ if(admin.admin){
 
   window.location = "admin.html"
 
@@ -75,7 +61,3 @@ async function init(){
  }
 
 }
-
-
-
-init()

@@ -2,26 +2,48 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<link rel="stylesheet" href="style.css">
+<title>Админ панель</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+body{
+ font-family:Arial;
+ background:#020617;
+ color:white;
+ padding:20px;
+}
+
+button{
+ padding:10px 20px;
+ margin:5px;
+ border:none;
+ border-radius:8px;
+ background:#dc2626;
+ color:white;
+ cursor:pointer;
+}
+
+input{
+ padding:10px;
+ margin:5px;
+}
+</style>
 </head>
 
 <body>
 
-<h2>Админ панель</h2>
+<h2>👑 Админ панель</h2>
 
-<h3>Предметы</h3>
+<h3>Создать предмет</h3>
 
 <input id="subjectName" placeholder="Название предмета">
 
 <button onclick="addSubject()">Создать</button>
 
+<h3>Список предметов</h3>
+
 <div id="subjects"></div>
-
-<h3>Рассылка</h3>
-
-<input id="text">
-
-<button onclick="broadcast()">Отправить</button>
 
 <script>
 
@@ -35,11 +57,14 @@ async function loadSubjects(){
 
  container.innerHTML=""
 
- subjects.forEach(sub=>{
+ subjects.forEach(subject=>{
 
   const div=document.createElement("div")
 
-  div.innerHTML=sub+" <button onclick='deleteSubject(\""+sub+"\")'>Удалить</button>"
+  div.innerHTML=`
+   ${subject}
+   <button onclick="deleteSubject('${subject}')">Удалить</button>
+  `
 
   container.appendChild(div)
 
@@ -53,7 +78,9 @@ async function addSubject(){
 
  await fetch("/api/addSubject",{
   method:"POST",
-  headers:{"Content-Type":"application/json"},
+  headers:{
+   "Content-Type":"application/json"
+  },
   body:JSON.stringify({name})
  })
 
@@ -65,25 +92,13 @@ async function deleteSubject(name){
 
  await fetch("/api/deleteSubject",{
   method:"POST",
-  headers:{"Content-Type":"application/json"},
+  headers:{
+   "Content-Type":"application/json"
+  },
   body:JSON.stringify({name})
  })
 
  loadSubjects()
-
-}
-
-async function broadcast(){
-
- const text=document.getElementById("text").value
-
- await fetch("/api/broadcast",{
-  method:"POST",
-  headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({text})
- })
-
- alert("Отправлено")
 
 }
 
