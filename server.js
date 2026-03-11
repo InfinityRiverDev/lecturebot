@@ -12,8 +12,6 @@ const app = express()
 app.use(bodyParser.json())
 
 const fs = require("fs")
-
-const fs = require("fs")
 const { ADMIN_IDS } = require("./config")
 
 app.post("/api/me",(req,res)=>{
