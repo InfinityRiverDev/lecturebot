@@ -2,13 +2,21 @@ require("dotenv").config()
 
 const express = require("express")
 const path = require("path")
+const bodyParser = require("body-parser")
 
-require("./index") // запускаем бота
+const { bot } = require("./index")
 
 const app = express()
 
-app.use(express.json())
+app.use(bodyParser.json())
 
+// WEBHOOK endpoint
+app.post(`/bot${process.env.BOT_TOKEN}`, (req,res)=>{
+ bot.processUpdate(req.body)
+ res.sendStatus(200)
+})
+
+// MINI APP
 app.use(express.static(path.join(__dirname,"webapp")))
 
 app.get("/",(req,res)=>{
@@ -17,6 +25,14 @@ app.get("/",(req,res)=>{
 
 const PORT = process.env.PORT || 3000
 
-app.listen(PORT,()=>{
- console.log("🌐 WebApp server started on",PORT)
+app.listen(PORT, async ()=>{
+
+ console.log("🌐 Server started")
+
+ const url = `https://app.kstubot.ru/bot${process.env.BOT_TOKEN}`
+
+ await bot.setWebHook(url)
+
+ console.log("✅ Webhook set:",url)
+
 })

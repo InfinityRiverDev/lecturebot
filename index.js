@@ -6,7 +6,7 @@ const PDFDocument = require("pdfkit")
 
 const { BOT_TOKEN, YA_API_KEY, AI_API_KEY, FOLDER_ID, ADMIN_IDS } = require("./config")
 
-const bot = new TelegramBot(BOT_TOKEN,{polling:true})
+const bot = new TelegramBot(BOT_TOKEN)
 
 console.log("🤖 Бот запущен")
 

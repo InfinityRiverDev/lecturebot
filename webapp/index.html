@@ -1,13 +1,58 @@
 <!DOCTYPE html>
 <html>
 <head>
+
 <meta charset="UTF-8">
 <title>KSTU Lectures</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+
+body{
+ font-family: Arial;
+ padding:20px;
+ background:#f4f4f4;
+}
+
+.card{
+ background:white;
+ padding:20px;
+ border-radius:10px;
+ box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+</style>
+
 </head>
 
 <body>
 
-<h1>MiniApp работает 🚀</h1>
+<div class="card">
+
+<h2>Mini App KSTU</h2>
+
+<div id="user"></div>
+
+</div>
+
+<script>
+
+const tg = window.Telegram.WebApp
+
+tg.expand()
+
+const user = tg.initDataUnsafe.user
+
+document.getElementById("user").innerHTML = `
+<b>ID:</b> ${user.id} <br>
+<b>Username:</b> ${user.username} <br>
+<b>Name:</b> ${user.first_name}
+`
+
+console.log("Telegram user:", user)
+
+</script>
 
 </body>
 </html>
