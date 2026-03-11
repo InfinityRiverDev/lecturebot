@@ -1,27 +1,33 @@
-const tg = window.Telegram.WebApp
+const tg = window.Telegram.WebApp;
 
-tg.ready()
-tg.expand()
+// Сообщаем Telegram, что приложение загрузилось
+tg.ready();
 
-const user = tg.initDataUnsafe?.user
+// Разворачиваем Mini App
+tg.expand();
 
-const app = document.getElementById("app")
+const app = document.getElementById("app");
 
-if(!user){
+// Ждём пока Telegram полностью отдаст данные
+setTimeout(() => {
 
- app.innerHTML="Откройте Mini App через Telegram"
+  const user = tg.initDataUnsafe?.user;
 
- throw new Error("No telegram user")
+  if(!user){
+    app.innerHTML = "Telegram user не найден";
+    console.log("initData:", tg.initDataUnsafe);
+    return;
+  }
 
-}
+  const userId = user.id;
 
-const userId = user.id
+  init(userId);
 
-init()
+}, 300);
 
-async function init(){
 
- // проверка регистрации
+async function init(userId){
+
  const res = await fetch("/api/checkUser",{
   method:"POST",
   headers:{
@@ -39,10 +45,7 @@ async function init(){
   <p>Напишите боту команду /start</p>
   `
   return
-
  }
-
- // проверяем админа
 
  const adminCheck = await fetch("/api/checkAdmin",{
   method:"POST",
@@ -55,13 +58,9 @@ async function init(){
  const adminData = await adminCheck.json()
 
  if(adminData.admin){
-
   window.location="admin.html"
-
  }else{
-
   window.location="user.html"
-
  }
 
 }
