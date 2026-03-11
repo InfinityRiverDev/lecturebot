@@ -10,16 +10,74 @@
 <style>
 
 body{
- font-family: Arial;
+ margin:0;
+ font-family: system-ui, -apple-system, Arial;
+ background: var(--tg-theme-bg-color,#f4f4f4);
+ color: var(--tg-theme-text-color,#000);
  padding:20px;
- background:#f4f4f4;
+}
+
+.header{
+ font-size:24px;
+ font-weight:600;
+ margin-bottom:20px;
 }
 
 .card{
- background:white;
- padding:20px;
+ background: var(--tg-theme-secondary-bg-color,#fff);
+ border-radius:14px;
+ padding:16px;
+ margin-bottom:12px;
+ box-shadow:0 4px 12px rgba(0,0,0,0.08);
+ transition:0.2s;
+}
+
+.card:hover{
+ transform:translateY(-2px);
+}
+
+.button{
+ width:100%;
+ padding:12px;
+ border:none;
+ border-radius:12px;
+ font-size:15px;
+ font-weight:500;
+ margin-bottom:10px;
+ cursor:pointer;
+ background:#2AABEE;
+ color:white;
+}
+
+.button.secondary{
+ background:#f1f1f1;
+ color:#000;
+}
+
+.input{
+ width:100%;
+ padding:12px;
  border-radius:10px;
- box-shadow:0 0 10px rgba(0,0,0,0.1);
+ border:1px solid #ddd;
+ margin-bottom:10px;
+ font-size:14px;
+}
+
+.select{
+ width:100%;
+ padding:12px;
+ border-radius:10px;
+ border:1px solid #ddd;
+ margin-bottom:10px;
+}
+
+.small{
+ font-size:13px;
+ opacity:0.7;
+}
+
+.back{
+ margin-top:15px;
 }
 
 </style>
@@ -28,13 +86,7 @@ body{
 
 <body>
 
-<div class="card">
-
-<h2>Mini App KSTU</h2>
-
-<div id="user"></div>
-
-</div>
+<div id="app"></div>
 
 <script>
 
@@ -44,10 +96,8 @@ tg.expand()
 const user = tg.initDataUnsafe?.user
 
 if(!user){
-
- document.body.innerHTML="Откройте приложение через Telegram"
+ document.body.innerHTML="Откройте Mini App через Telegram"
  throw new Error("No Telegram user")
-
 }
 
 async function loadUser(){
@@ -57,90 +107,44 @@ async function loadUser(){
   headers:{
    "Content-Type":"application/json"
   },
-  body:JSON.stringify({
-   id:user.id
-  })
+  body:JSON.stringify({id:user.id})
  })
 
  const data = await response.json()
 
- renderApp(data)
+ renderHome(data)
 
 }
 
-async function renderApp(data){
+function renderHome(data){
 
- const container = document.getElementById("user")
+ const app = document.getElementById("app")
 
  if(data.role === "admin"){
 
-    container.innerHTML = `
-        <h2>⚙ Админ панель</h2>
+ app.innerHTML=`
 
-        <button onclick="loadSubjects()">📚 Предметы</button>
-        <br><br>
+ <div class="header">⚙ Админ панель</div>
 
-        <button onclick="showCreateSubject()">➕ Создать предмет</button>
-        <br><br>
+ <button class="button" onclick="loadSubjects()">📚 Предметы</button>
 
-        <button onclick="showUploadLecture()">🎤 Добавить лекцию</button>
-        `
+ <button class="button" onclick="showCreateSubject()">➕ Создать предмет</button>
 
-    }else{
-
-  container.innerHTML = `
-  <h2>Лекции</h2>
-  <button onclick="loadSubjects()">📚 Открыть предметы</button>
-  `
-
- }
-
-}
-
-function showCreateSubject(){
-
- const container = document.getElementById("user")
-
- container.innerHTML = `
-
- <h2>➕ Новый предмет</h2>
-
- <input 
-  id="subjectName"
-  placeholder="Название предмета"
-  style="padding:10px;width:100%;margin-bottom:10px"
- />
-
- <button onclick="createSubject()">Создать</button>
-
- <br><br>
-
- <button onclick="loadSubjects()">⬅ Назад</button>
+ <button class="button" onclick="showUploadLecture()">🎤 Добавить лекцию</button>
 
  `
 
-}
+ }else{
 
-async function createSubject(){
+ app.innerHTML=`
 
- const subject = document.getElementById("subjectName").value
+ <div class="header">📚 Лекции</div>
 
- if(!subject){
-  alert("Введите название")
-  return
+ <button class="button" onclick="loadSubjects()">Открыть предметы</button>
+
+ `
+
  }
-
- await fetch("/api/create-subject",{
-  method:"POST",
-  headers:{
-   "Content-Type":"application/json"
-  },
-  body:JSON.stringify({subject})
- })
-
- alert("Предмет создан")
-
- loadSubjects()
 
 }
 
@@ -149,144 +153,146 @@ async function loadSubjects(){
  const res = await fetch("/api/subjects")
  const subjects = await res.json()
 
- const container = document.getElementById("user")
+ const app = document.getElementById("app")
 
- if(subjects.length === 0){
-  container.innerHTML = "<p>❌ Пока нет предметов</p>"
-  return
- }
-
- let html = "<h2>📚 Предметы</h2>"
+ let html=`<div class="header">📚 Предметы</div>`
 
  subjects.forEach(s=>{
 
- html += `
- <div style="padding:12px;border:1px solid #ddd;margin:6px;border-radius:8px">
+ html+=`
 
-  <div onclick="openSubject('${s}')" style="cursor:pointer">
-   📚 ${s}
-  </div>
+ <div class="card">
 
-  <button onclick="deleteSubject('${s}')">
-   🗑 Удалить
-  </button>
+ <div onclick="openSubject('${s}')" style="cursor:pointer">
+
+ <b>${s}</b>
 
  </div>
+
+ <button class="button secondary" onclick="deleteSubject('${s}')">Удалить</button>
+
+ </div>
+
  `
 
-})
+ })
 
- container.innerHTML = html
+ html+=`<button class="button back" onclick="loadUser()">⬅ Назад</button>`
+
+ app.innerHTML=html
 
 }
 
-async function deleteSubject(subject){
+async function openSubject(subject){
 
- if(!confirm("Удалить предмет "+subject+" ?")){
-  return
- }
+ const res = await fetch("/api/lectures/"+subject)
+ const lectures = await res.json()
 
- await fetch("/api/delete-subject",{
-  method:"POST",
-  headers:{
-   "Content-Type":"application/json"
-  },
-  body:JSON.stringify({subject})
+ const app = document.getElementById("app")
+
+ let html=`<div class="header">${subject}</div>`
+
+ lectures.forEach(l=>{
+
+ html+=`
+
+ <div class="card">
+
+ <a href="/data/${subject}/${l}" target="_blank">
+
+ 📄 ${l.replace(".pdf","")}
+
+ </a>
+
+ </div>
+
+ `
+
+ })
+
+ html+=`<button class="button back" onclick="loadSubjects()">⬅ Назад</button>`
+
+ app.innerHTML=html
+
+}
+
+function showCreateSubject(){
+
+ const app=document.getElementById("app")
+
+ app.innerHTML=`
+
+ <div class="header">➕ Новый предмет</div>
+
+ <input id="subjectName" class="input" placeholder="Название предмета">
+
+ <button class="button" onclick="createSubject()">Создать</button>
+
+ <button class="button secondary back" onclick="loadUser()">⬅ Назад</button>
+
+ `
+
+}
+
+async function createSubject(){
+
+ const subject=document.getElementById("subjectName").value
+
+ await fetch("/api/create-subject",{
+ method:"POST",
+ headers:{"Content-Type":"application/json"},
+ body:JSON.stringify({subject})
  })
 
  loadSubjects()
 
 }
 
-async function openSubject(subject){
+async function deleteSubject(subject){
 
- const res = await fetch(`/api/lectures/${subject}`)
- const lectures = await res.json()
+ if(!confirm("Удалить "+subject+"?")) return
 
- const container = document.getElementById("user")
-
- if(lectures.length === 0){
-
-  container.innerHTML = `
-  <h2>${subject}</h2>
-  <p>❌ Пока нет лекций</p>
-  <button onclick="loadSubjects()">⬅ Назад</button>
-  `
-  return
- }
-
- let html = `<h2>${subject}</h2>`
-
- lectures.forEach(l=>{
-
-  html += `
-  <div 
-   style="padding:12px;border:1px solid #ddd;margin:6px;border-radius:8px"
-  >
-   <a href="/data/${subject}/${l}" target="_blank">
-    📄 ${l.replace(".pdf","")}
-   </a>
-  </div>
-  `
-
+ await fetch("/api/delete-subject",{
+ method:"POST",
+ headers:{"Content-Type":"application/json"},
+ body:JSON.stringify({subject})
  })
 
- html += `<button onclick="loadSubjects()">⬅ Назад</button>`
-
- container.innerHTML = html
+ loadSubjects()
 
 }
 
 async function showUploadLecture(){
 
- const res = await fetch("/api/subjects")
- const subjects = await res.json()
+ const res=await fetch("/api/subjects")
+ const subjects=await res.json()
 
  let options=""
 
  subjects.forEach(s=>{
-  options += `<option value="${s}">${s}</option>`
+ options+=`<option value="${s}">${s}</option>`
  })
 
- const container = document.getElementById("user")
+ const app=document.getElementById("app")
 
- container.innerHTML = `
+ app.innerHTML=`
 
- <h2>🎤 Загрузка лекции</h2>
+ <div class="header">🎤 Загрузка лекции</div>
 
- <label>Предмет</label>
+ <select id="subjectInput" class="select">${options}</select>
 
- <select id="subjectInput" style="width:100%;padding:10px;margin-bottom:10px">
- ${options}
- </select>
+ <input type="file" id="audioFile" accept=".ogg">
 
- <label>Аудио файл</label>
+ <div class="small">Обработка</div>
 
- <input type="file" id="audioFile" style="margin-bottom:10px">
-
- <label>Обработка текста</label>
-
- <div>
-  <label>
-   <input type="radio" name="mode" value="raw" checked>
-   Без AI
-  </label>
- </div>
-
- <div>
-  <label>
-   <input type="radio" name="mode" value="ai">
-   AI конспект
-  </label>
- </div>
-
- <br>
-
- <button onclick="uploadLecture()">Загрузить</button>
+ <label><input type="radio" name="mode" value="raw" checked> Без AI</label><br>
+ <label><input type="radio" name="mode" value="ai"> AI конспект</label>
 
  <br><br>
 
- <button onclick="loadSubjects()">⬅ Назад</button>
+ <button class="button" onclick="uploadLecture()">Загрузить</button>
+
+ <button class="button secondary back" onclick="loadUser()">⬅ Назад</button>
 
  `
 
@@ -294,23 +300,19 @@ async function showUploadLecture(){
 
 async function uploadLecture(){
 
- const subject = document.getElementById("subjectInput").value
- const file = document.getElementById("audioFile").files[0]
+ const subject=document.getElementById("subjectInput").value
+ const file=document.getElementById("audioFile").files[0]
+ const mode=document.querySelector('input[name="mode"]:checked').value
 
- const mode = document.querySelector('input[name="mode"]:checked').value
-
- const form = new FormData()
+ const form=new FormData()
 
  form.append("audio",file)
  form.append("subject",subject)
  form.append("mode",mode)
 
- await fetch("/api/upload-lecture",{
-  method:"POST",
-  body:form
- })
+ await fetch("/api/upload-lecture",{method:"POST",body:form})
 
- alert("Лекция создана")
+ alert("Лекция добавлена")
 
  loadSubjects()
 
