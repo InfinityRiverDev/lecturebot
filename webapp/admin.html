@@ -1,23 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-
-<meta charset="UTF-8">
-<title>Админ панель</title>
-
-<link rel="stylesheet" href="style.css">
-
+    <meta charset="UTF-8">
+    <title>Админ-панель</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+    <div id="app">
+        <h1>Админ-панель</h1>
+        <div class="admin-menu">
+            <button onclick="loadSubjects()">📚 Управление предметами</button>
+            <button onclick="loadUsers()">👥 Пользователи</button>
+            <button onclick="broadcastMessage()">📢 Рассылка</button>
+        </div>
+        <div id="content"></div>
+    </div>
 
-<div id="app">
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
 
-<h2>👑 Админ панель</h2>
+        async function loadSubjects() {
+            const res = await fetch('/api/subjects');
+            const subjects = await res.json();
+            // отображение предметов
+        }
 
-<p>Здесь будет управление лекциями</p>
+        async function loadUsers() {
+            const res = await fetch('/api/users');
+            const users = await res.json();
+            // отображение пользователей
+        }
 
-</div>
-
+        function broadcastMessage() {
+            const text = prompt('Введите текст рассылки:');
+            if(text) {
+                fetch('/api/broadcast', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({text})
+                });
+            }
+        }
+    </script>
 </body>
 </html>

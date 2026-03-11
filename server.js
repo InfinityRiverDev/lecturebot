@@ -101,6 +101,22 @@ app.post("/webhook", (req, res) => {
     res.sendStatus(200)
 })
 
+app.get('*', (req, res) => {
+    // Не обрабатываем API запросы
+    if (req.url.startsWith('/api/') || req.url === '/webhook') {
+        return;
+    }
+    
+    // Проверяем существование файла
+    const filePath = __dirname + '/webapp' + req.url;
+    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+        return res.sendFile(filePath);
+    }
+    
+    // Иначе отдаем index.html
+    res.sendFile(__dirname + '/webapp/index.html');
+});
+
 const PORT = process.env.PORT || 3000
 const WEBHOOK_URL = `https://app.kstubot.ru/webhook` // Убедитесь, что URL правильный
 
