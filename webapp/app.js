@@ -1,8 +1,23 @@
 const tg = window.Telegram.WebApp
 
 tg.expand()
+tg.ready()
 
-const userId = tg.initDataUnsafe.user.id
+let userId = null
+
+if(tg.initDataUnsafe && tg.initDataUnsafe.user){
+ userId = tg.initDataUnsafe.user.id
+}else{
+
+ document.body.innerHTML = `
+ <div style="padding:40px;text-align:center;font-family:sans-serif">
+ <h2>Откройте приложение через Telegram</h2>
+ </div>
+ `
+
+ throw new Error("Telegram user not found")
+
+}
 
 
 
