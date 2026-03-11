@@ -122,27 +122,40 @@ function createPDF(path, subject, date, text){
 // START
 bot.onText(/\/start/,msg=>{
 
- const id=msg.from.id
+ const id = msg.from.id
+ const chatId = msg.chat.id
 
  if(isAuthorized(id)){
 
-  bot.sendMessage(msg.chat.id, `👋 Привет!
-Этот бот хранит лекции.`, {
+  bot.sendMessage(chatId,
+`👋 Привет!
+
+Открой приложение чтобы смотреть лекции.`,
+{
  reply_markup:{
   keyboard:[
-   ["📚 Посмотреть лекции"]
+   [
+    {
+     text:"📚 Открыть лекции",
+     web_app:{
+      url:"https://app.kstubot.ru"
+     }
+    }
+   ]
   ],
   resize_keyboard:true
  }
- })
+})
 
  return
  }
 
- authState[id]="login"
+ authState[id] = "login"
 
- bot.sendMessage(msg.chat.id,"🔐 Введите логин")
+ bot.sendMessage(chatId,
+`🔐 Регистрация
 
+Введите логин от портала КСТУ`)
 })
 
 

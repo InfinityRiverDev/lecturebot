@@ -1,4 +1,5 @@
 require("./index")
+
 const express = require("express")
 const fs = require("fs")
 const cors = require("cors")
@@ -19,18 +20,30 @@ function saveUsers(users){
  fs.writeFileSync("users.json",JSON.stringify(users,null,2))
 }
 
+function isAdmin(id){
+ return ADMIN_IDS.includes(Number(id))
+}
+
+
+
+
+
+
+// проверить админа
 app.post("/api/checkAdmin",(req,res)=>{
 
  const {userId} = req.body
 
- if(ADMIN_IDS.includes(userId)){
-  res.json({admin:true})
- }else{
-  res.json({admin:false})
- }
+ res.json({admin:isAdmin(userId)})
 
 })
 
+
+
+
+
+
+// список пользователей
 app.get("/api/users",(req,res)=>{
 
  const users = loadUsers()
@@ -39,6 +52,12 @@ app.get("/api/users",(req,res)=>{
 
 })
 
+
+
+
+
+
+// удалить пользователя
 app.post("/api/deleteUser",(req,res)=>{
 
  const {userId} = req.body
@@ -53,6 +72,12 @@ app.post("/api/deleteUser",(req,res)=>{
 
 })
 
+
+
+
+
+
+// рассылка
 app.post("/api/broadcast",(req,res)=>{
 
  const {text} = req.body
@@ -62,17 +87,131 @@ app.post("/api/broadcast",(req,res)=>{
  const bot = require("./index").bot
 
  Object.keys(users).forEach(id=>{
-
   bot.sendMessage(id,text)
-
  })
 
  res.json({success:true})
 
 })
 
+
+
+
+
+
+// список предметов
+app.get("/api/subjects",(req,res)=>{
+
+ const subjects = fs.readdirSync("data")
+
+ res.json(subjects)
+
+})
+
+
+
+
+
+
+// лекции предмета
+app.get("/api/lectures/:subject",(req,res)=>{
+
+ const subject = req.params.subject
+
+ const files = fs.readdirSync(`data/${subject}`)
+
+ res.json(files)
+
+})
+
+
+
+
+
+
+// скачать лекцию
+app.get("/api/lecture/:subject/:file",(req,res)=>{
+
+ const {subject,file} = req.params
+
+ res.sendFile(__dirname + `/data/${subject}/${file}`)
+
+})
+
+
+
+
+
+
+// создать предмет
+app.post("/api/addSubject",(req,res)=>{
+
+ const {name} = req.body
+
+ if(!fs.existsSync(`data/${name}`)){
+  fs.mkdirSync(`data/${name}`)
+ }
+
+ res.json({success:true})
+
+})
+
+
+
+
+
+
+// удалить предмет
+app.post("/api/deleteSubject",(req,res)=>{
+
+ const {name} = req.body
+
+ fs.rmSync(`data/${name}`,{recursive:true,force:true})
+
+ res.json({success:true})
+
+})
+
+
+
+
+
+
+// удалить лекцию
+app.post("/api/deleteLecture",(req,res)=>{
+
+ const {subject,file} = req.body
+
+ fs.unlinkSync(`data/${subject}/${file}`)
+
+ res.json({success:true})
+
+})
+
+
+app.post("/api/checkUser",(req,res)=>{
+
+ const {userId} = req.body
+
+ const users = JSON.parse(fs.readFileSync("users.json"))
+
+ if(users[userId]){
+  res.json({registered:true})
+ }else{
+  res.json({registered:false})
+ }
+
+})
+
+
+
+
+
+
 const PORT = process.env.PORT || 3000
 
-app.listen(PORT, () => {
- console.log("Mini App server started on port " + PORT)
+app.listen(PORT,()=>{
+
+ console.log("Mini App server started on port "+PORT)
+
 })
