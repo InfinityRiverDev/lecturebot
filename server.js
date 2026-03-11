@@ -82,6 +82,25 @@ app.get("/api/lectures/:subject",(req,res)=>{
 
 })
 
+app.post("/api/create-subject",(req,res)=>{
+
+ const fs = require("fs")
+ const { subject } = req.body
+
+ if(!subject){
+  return res.json({error:"no subject"})
+ }
+
+ const path = `data/${subject}`
+
+ if(!fs.existsSync(path)){
+  fs.mkdirSync(path)
+ }
+
+ res.json({success:true})
+
+})
+
 app.post(`/bot${BOT_TOKEN}`, (req,res)=>{
  bot.processUpdate(req.body)
  res.sendStatus(200)

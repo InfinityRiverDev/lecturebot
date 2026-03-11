@@ -74,12 +74,17 @@ async function renderApp(data){
 
  if(data.role === "admin"){
 
-  container.innerHTML = `
-  <h2>Админ панель</h2>
-  <button onclick="loadSubjects()">📚 Список предметов</button>
-  `
+    container.innerHTML = `
+    <h2>⚙ Админ панель</h2>
 
- }else{
+    <button onclick="loadSubjects()">📚 Предметы</button>
+    <br><br>
+
+    <button onclick="showCreateSubject()">➕ Создать предмет</button>
+
+    `
+
+    }else{
 
   container.innerHTML = `
   <h2>Лекции</h2>
@@ -87,6 +92,53 @@ async function renderApp(data){
   `
 
  }
+
+}
+
+function showCreateSubject(){
+
+ const container = document.getElementById("user")
+
+ container.innerHTML = `
+
+ <h2>➕ Новый предмет</h2>
+
+ <input 
+  id="subjectName"
+  placeholder="Название предмета"
+  style="padding:10px;width:100%;margin-bottom:10px"
+ />
+
+ <button onclick="createSubject()">Создать</button>
+
+ <br><br>
+
+ <button onclick="loadSubjects()">⬅ Назад</button>
+
+ `
+
+}
+
+async function createSubject(){
+
+ const subject = document.getElementById("subjectName").value
+
+ if(!subject){
+  alert("Введите название")
+  return
+ }
+
+ await fetch("/api/create-subject",{
+  method:"POST",
+  headers:{
+   "Content-Type":"application/json"
+  },
+  body:JSON.stringify({subject})
+ })
+
+ alert("Предмет создан")
+
+ loadSubjects()
 
 }
 
