@@ -6,15 +6,29 @@ const PDFDocument = require("pdfkit")
 
 const { BOT_TOKEN, YA_API_KEY, AI_API_KEY, FOLDER_ID, ADMIN_IDS } = require("./config")
 
-const bot = new TelegramBot(BOT_TOKEN,{
-  polling:{
-  autoStart:true,
-  interval:300
- }})
+const bot = new TelegramBot(BOT_TOKEN,{ polling:false })
 
-bot.deleteWebHook()
+async function startBot(){
 
-console.log("🤖 Бот запущен")
+ try{
+
+  await bot.deleteWebHook()
+
+  await bot.startPolling({
+   interval:300
+  })
+
+  console.log("🤖 Бот запущен")
+
+ }catch(err){
+
+  console.log("Ошибка запуска бота:",err.message)
+
+ }
+
+}
+
+startBot()
 
 if(!fs.existsSync("data")){
  fs.mkdirSync("data")
