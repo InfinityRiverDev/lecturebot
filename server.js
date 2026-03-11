@@ -13,12 +13,22 @@ app.use(bodyParser.json())
 
 const fs = require("fs")
 
+const fs = require("fs")
+const { ADMIN_IDS } = require("./config")
+
 app.post("/api/me",(req,res)=>{
 
  const { id } = req.body
 
  if(!id){
   return res.json({error:"no id"})
+ }
+
+ // если админ
+ if(ADMIN_IDS.includes(Number(id))){
+  return res.json({
+   role:"admin"
+  })
  }
 
  const users = JSON.parse(fs.readFileSync("users.json"))
@@ -30,7 +40,7 @@ app.post("/api/me",(req,res)=>{
  }
 
  res.json({
-  role:user.role,
+  role:"user",
   login:user.login
  })
 
