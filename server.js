@@ -4,6 +4,9 @@ const express = require("express")
 const path = require("path")
 const bodyParser = require("body-parser")
 
+const multer = require("multer")
+const upload = multer({ dest: "audio/" })
+
 const { bot } = require("./index")
 const { BOT_TOKEN } = require("./config")
 
@@ -41,6 +44,53 @@ app.post("/api/me",(req,res)=>{
   role:"user",
   login:user.login
  })
+
+})
+
+app.post("/api/upload-lecture", upload.single("audio"), async (req,res)=>{
+
+ const fs = require("fs")
+ const axios = require("axios")
+
+ const subject = req.body.subject
+ const filePath = req.file.path
+
+ try{
+
+  // читаем аудио
+  const audio = fs.readFileSync(filePath)
+
+  // отправляем в STT
+  const result = await axios.post(
+   "https://stt.api.cloud.yandex.net/speech/v1/stt:recognize?lang=ru-RU",
+   audio,
+   {
+    headers:{
+     Authorization:`Api-Key ${process.env.YA_API_KEY}`,
+     "Content-Type":"application/octet-stream"
+    }
+   }
+  )
+
+  const text = result.data.result || "Ошибка распознавания"
+
+  const date = new Date().toISOString().split("T")[0]
+
+  const pdfPath = `data/${subject}/${date}.pdf`
+
+  const { createPDF } = require("./index")
+
+  createPDF(pdfPath,subject,date,text)
+
+  res.json({success:true})
+
+ }catch(err){
+
+  console.log(err)
+
+  res.json({error:true})
+
+ }
 
 })
 
@@ -95,6 +145,26 @@ app.post("/api/create-subject",(req,res)=>{
 
  if(!fs.existsSync(path)){
   fs.mkdirSync(path)
+ }
+
+ res.json({success:true})
+
+})
+
+app.post("/api/delete-subject",(req,res)=>{
+
+ const fs = require("fs")
+
+ const { subject } = req.body
+
+ if(!subject){
+  return res.json({error:"no subject"})
+ }
+
+ const path = `data/${subject}`
+
+ if(fs.existsSync(path)){
+  fs.rmSync(path,{recursive:true,force:true})
  }
 
  res.json({success:true})

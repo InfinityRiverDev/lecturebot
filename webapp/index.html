@@ -75,14 +75,16 @@ async function renderApp(data){
  if(data.role === "admin"){
 
     container.innerHTML = `
-    <h2>⚙ Админ панель</h2>
+        <h2>⚙ Админ панель</h2>
 
-    <button onclick="loadSubjects()">📚 Предметы</button>
-    <br><br>
+        <button onclick="loadSubjects()">📚 Предметы</button>
+        <br><br>
 
-    <button onclick="showCreateSubject()">➕ Создать предмет</button>
+        <button onclick="showCreateSubject()">➕ Создать предмет</button>
+        <br><br>
 
-    `
+        <button onclick="showUploadLecture()">🎤 Добавить лекцию</button>
+        `
 
     }else{
 
@@ -157,16 +159,42 @@ async function loadSubjects(){
  let html = "<h2>📚 Предметы</h2>"
 
  subjects.forEach(s=>{
-  html += `
-  <div 
-   style="padding:12px;border:1px solid #ddd;margin:6px;border-radius:8px;cursor:pointer"
-   onclick="openSubject('${s}')"
-  >
-   ${s}
-  </div>`
- })
+
+ html += `
+ <div style="padding:12px;border:1px solid #ddd;margin:6px;border-radius:8px">
+
+  <div onclick="openSubject('${s}')" style="cursor:pointer">
+   📚 ${s}
+  </div>
+
+  <button onclick="deleteSubject('${s}')">
+   🗑 Удалить
+  </button>
+
+ </div>
+ `
+
+})
 
  container.innerHTML = html
+
+}
+
+async function deleteSubject(subject){
+
+ if(!confirm("Удалить предмет "+subject+" ?")){
+  return
+ }
+
+ await fetch("/api/delete-subject",{
+  method:"POST",
+  headers:{
+   "Content-Type":"application/json"
+  },
+  body:JSON.stringify({subject})
+ })
+
+ loadSubjects()
 
 }
 
@@ -206,6 +234,49 @@ async function openSubject(subject){
  html += `<button onclick="loadSubjects()">⬅ Назад</button>`
 
  container.innerHTML = html
+
+}
+
+function showUploadLecture(){
+
+ const container = document.getElementById("user")
+
+ container.innerHTML = `
+
+ <h2>🎤 Загрузка лекции</h2>
+
+ <input id="subjectInput" placeholder="Предмет" style="width:100%;padding:10px;margin-bottom:10px">
+
+ <input type="file" id="audioFile">
+
+ <br><br>
+
+ <button onclick="uploadLecture()">Загрузить</button>
+
+ <br><br>
+
+ <button onclick="loadSubjects()">⬅ Назад</button>
+
+ `
+
+}
+
+async function uploadLecture(){
+
+ const subject = document.getElementById("subjectInput").value
+ const file = document.getElementById("audioFile").files[0]
+
+ const form = new FormData()
+
+ form.append("audio",file)
+ form.append("subject",subject)
+
+ await fetch("/api/upload-lecture",{
+  method:"POST",
+  body:form
+ })
+
+ alert("Лекция создана")
 
 }
 
