@@ -1,23 +1,13 @@
 const {bot} = require("./index")
 
 async function startBot(){
-
  try{
-
   await bot.deleteWebHook({ drop_pending_updates:true })
-
-  await bot.startPolling({
-   interval:300
-  })
-
+  await bot.startPolling({ interval:300 })
   console.log("🤖 Bot polling started")
-
  }catch(err){
-
-  console.log("Polling error:",err.message)
-
+  console.log("Polling error:", err.message)
  }
-
 }
 
 startBot()
