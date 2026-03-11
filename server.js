@@ -30,6 +30,13 @@ const { ADMIN_IDS } = require("./config")
 
 const app = express()
 
+app.use(express.json())
+
+app.post("/bot",(req,res)=>{
+ bot.processUpdate(req.body)
+ res.sendStatus(200)
+})
+
 app.use(cors())
 app.use(express.json())
 app.use(express.static("webapp"))
@@ -230,8 +237,22 @@ app.post("/api/checkUser",(req,res)=>{
 
 const PORT = process.env.PORT || 3000
 
-app.listen(PORT,()=>{
+const WEBHOOK_URL = "https://app.kstubot.ru/bot"
+
+app.listen(PORT,async ()=>{
 
  console.log("Mini App server started on port "+PORT)
+
+ try{
+
+  await bot.setWebHook(WEBHOOK_URL)
+
+  console.log("Webhook set:",WEBHOOK_URL)
+
+ }catch(err){
+
+  console.log("Webhook error:",err.message)
+
+ }
 
 })
