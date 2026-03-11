@@ -4,6 +4,8 @@ const express = require("express")
 const path = require("path")
 const bodyParser = require("body-parser")
 
+const { createPDF, improveText } = require("./index")
+
 const multer = require("multer")
 const upload = multer({ dest: "audio/" })
 
@@ -49,22 +51,28 @@ app.post("/api/me",(req,res)=>{
 
 app.post("/api/upload-lecture", upload.single("audio"), async (req,res)=>{
 
- const mode = req.body.mode || "raw"
-
  const fs = require("fs")
  const axios = require("axios")
 
- const subject = req.body.subject
+ const subject = req.body?.subject
+ const mode = req.body?.mode || "raw"
+
+ if(!req.file){
+  return res.json({error:"no audio file"})
+ }
+
+ if(!subject){
+  return res.json({error:"no subject"})
+ }
+
  const filePath = req.file.path
 
  try{
 
-  // читаем аудио
   const audio = fs.readFileSync(filePath)
 
-  // отправляем в STT
   const result = await axios.post(
-   "https://stt.api.cloud.yandex.net/speech/v1/stt:recognize?lang=ru-RU",
+   "https://stt.api.cloud.yandex.net/speech/v1/stt:recognize?lang=ru-RU&format=mp3",
    audio,
    {
     headers:{
@@ -76,17 +84,15 @@ app.post("/api/upload-lecture", upload.single("audio"), async (req,res)=>{
 
   const text = result.data.result || "Ошибка распознавания"
 
-    let finalText = text
+  let finalText = text
 
-    if(mode === "ai"){
-    finalText = await improveText(text)
-    }
+  if(mode === "ai"){
+   finalText = await improveText(text)
+  }
 
   const date = new Date().toISOString().split("T")[0]
 
   const pdfPath = `data/${subject}/${date}.pdf`
-
-  const { createPDF, improveText } = require("./index")
 
   createPDF(pdfPath,subject,date,finalText)
 
