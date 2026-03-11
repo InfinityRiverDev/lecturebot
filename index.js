@@ -241,13 +241,24 @@ if(authState[userId] && typeof authState[userId]==="object"){
    bot.sendMessage(chatId,"✅ Регистрация завершена")
   }
 
-  bot.sendMessage(chatId,`👋 Добро пожаловать!`,{
-   reply_markup:{
+  bot.sendMessage(chatId,
+  `👋 Добро пожаловать!
+
+  Открой приложение чтобы смотреть лекции.`,
+  {
+  reply_markup:{
     keyboard:[
-     ["📚 Посмотреть лекции"]
+    [
+      {
+      text:"📚 Открыть лекции",
+      web_app:{
+        url:"https://app.kstubot.ru"
+      }
+      }
+    ]
     ],
     resize_keyboard:true
-   }
+  }
   })
 
   return
