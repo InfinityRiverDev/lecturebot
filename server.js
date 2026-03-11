@@ -72,7 +72,7 @@ app.post("/api/upload-lecture", upload.single("audio"), async (req,res)=>{
   const audio = fs.readFileSync(filePath)
 
   const result = await axios.post(
-   "https://stt.api.cloud.yandex.net/speech/v1/stt:recognize?lang=ru-RU&format=mp3",
+   "https://stt.api.cloud.yandex.net/speech/v1/stt:recognize?lang=ru-RU&format=oggopus",
    audio,
    {
     headers:{
