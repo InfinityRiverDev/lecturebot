@@ -39,18 +39,27 @@ body{
 <script>
 
 const tg = window.Telegram.WebApp
-
 tg.expand()
 
-const user = tg.initDataUnsafe.user
+const user = tg.initDataUnsafe?.user
+
+if(user){
 
 document.getElementById("user").innerHTML = `
-<b>ID:</b> ${user.id} <br>
-<b>Username:</b> ${user.username} <br>
+<b>ID:</b> ${user.id}<br>
+<b>Username:</b> ${user.username}<br>
 <b>Name:</b> ${user.first_name}
 `
 
-console.log("Telegram user:", user)
+}else{
+
+document.getElementById("user").innerHTML = `
+❌ Telegram не передал данные пользователя.
+
+Откройте Mini App через кнопку бота.
+`
+
+}
 
 </script>
 
