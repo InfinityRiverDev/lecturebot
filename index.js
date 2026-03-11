@@ -6,39 +6,44 @@ const PDFDocument = require("pdfkit")
 
 const { BOT_TOKEN, YA_API_KEY, AI_API_KEY, FOLDER_ID, ADMIN_IDS } = require("./config")
 
-// Создаем бота без polling
-const bot = new TelegramBot(BOT_TOKEN, { polling: false })
+const bot = new TelegramBot(BOT_TOKEN,{polling:true})
 
-// Остальной код без изменений
-if (!fs.existsSync("data")) {
-    fs.mkdirSync("data")
+console.log("🤖 Бот запущен")
+
+if(!fs.existsSync("data")){
+ fs.mkdirSync("data")
 }
 
-if (!fs.existsSync("users.json")) {
-    fs.writeFileSync("users.json", JSON.stringify({}))
+if(!fs.existsSync("users.json")){
+ fs.writeFileSync("users.json",JSON.stringify({}))
 }
 
 let users = JSON.parse(fs.readFileSync("users.json"))
+
 let authState = {}
-const ADMIN_LOGIN = "admin"
-const ADMIN_PASSWORD = "admin123"
-let adminState = {}
-let adminAudio = {}
-let pendingLecture = {}
-let subjectsStore = {}
-let lecturesStore = {}
-let counter = 0
 
-function isAdmin(id) {
-    return ADMIN_IDS.includes(id)
+const ADMIN_LOGIN="admin"
+const ADMIN_PASSWORD="admin123"
+
+let adminState={}
+let adminAudio={}
+let pendingLecture={}
+
+let subjectsStore={}
+let lecturesStore={}
+let counter=0
+
+
+function isAdmin(id){
+ return ADMIN_IDS.includes(id)
 }
 
-function isAuthorized(id) {
-    return users[id] || isAdmin(id)
+function isAuthorized(id){
+ return users[id] || isAdmin(id)
 }
 
-function saveUsers() {
-    fs.writeFileSync("users.json", JSON.stringify(users, null, 2))
+function saveUsers(){
+ fs.writeFileSync("users.json",JSON.stringify(users,null,2))
 }
 
 
