@@ -6,6 +6,10 @@ tg.ready();
 // Разворачиваем Mini App
 tg.expand();
 
+console.log("Telegram object:", tg)
+console.log("initData:", tg.initData)
+console.log("initDataUnsafe:", tg.initDataUnsafe)
+
 const app = document.getElementById("app");
 
 // Ждём пока Telegram полностью отдаст данные
