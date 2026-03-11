@@ -1,0 +1,16 @@
+body{
+ background:#0f172a;
+ color:white;
+ font-family:sans-serif;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ height:100vh;
+}
+
+#app{
+ background:#1e293b;
+ padding:30px;
+ border-radius:15px;
+ text-align:center;
+}
