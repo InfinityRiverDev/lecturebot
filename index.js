@@ -133,18 +133,17 @@ bot.onText(/\/start/,msg=>{
 Открой приложение чтобы смотреть лекции.`,
 {
  reply_markup:{
-  keyboard:[
-   [
+  inline_keyboard:[
+    [
     {
-     text:"📚 Открыть лекции",
-     web_app:{
+      text:"📚 Открыть лекции",
+      web_app:{
       url:"https://app.kstubot.ru"
-     }
+      }
     }
-   ]
-  ],
-  resize_keyboard:true
- }
+    ]
+  ]
+  }
 })
 
  return
@@ -247,18 +246,17 @@ if(authState[userId] && typeof authState[userId]==="object"){
   Открой приложение чтобы смотреть лекции.`,
   {
   reply_markup:{
-    keyboard:[
-    [
+    inline_keyboard:[
+      [
       {
-      text:"📚 Открыть лекции",
-      web_app:{
+        text:"📚 Открыть лекции",
+        web_app:{
         url:"https://app.kstubot.ru"
+        }
       }
-      }
+      ]
     ]
-    ],
-    resize_keyboard:true
-  }
+    }
   })
 
   return
