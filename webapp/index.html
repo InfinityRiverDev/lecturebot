@@ -237,7 +237,16 @@ async function openSubject(subject){
 
 }
 
-function showUploadLecture(){
+async function showUploadLecture(){
+
+ const res = await fetch("/api/subjects")
+ const subjects = await res.json()
+
+ let options=""
+
+ subjects.forEach(s=>{
+  options += `<option value="${s}">${s}</option>`
+ })
 
  const container = document.getElementById("user")
 
@@ -245,11 +254,33 @@ function showUploadLecture(){
 
  <h2>🎤 Загрузка лекции</h2>
 
- <input id="subjectInput" placeholder="Предмет" style="width:100%;padding:10px;margin-bottom:10px">
+ <label>Предмет</label>
 
- <input type="file" id="audioFile">
+ <select id="subjectInput" style="width:100%;padding:10px;margin-bottom:10px">
+ ${options}
+ </select>
 
- <br><br>
+ <label>Аудио файл</label>
+
+ <input type="file" id="audioFile" style="margin-bottom:10px">
+
+ <label>Обработка текста</label>
+
+ <div>
+  <label>
+   <input type="radio" name="mode" value="raw" checked>
+   Без AI
+  </label>
+ </div>
+
+ <div>
+  <label>
+   <input type="radio" name="mode" value="ai">
+   AI конспект
+  </label>
+ </div>
+
+ <br>
 
  <button onclick="uploadLecture()">Загрузить</button>
 
@@ -266,10 +297,13 @@ async function uploadLecture(){
  const subject = document.getElementById("subjectInput").value
  const file = document.getElementById("audioFile").files[0]
 
+ const mode = document.querySelector('input[name="mode"]:checked').value
+
  const form = new FormData()
 
  form.append("audio",file)
  form.append("subject",subject)
+ form.append("mode",mode)
 
  await fetch("/api/upload-lecture",{
   method:"POST",
@@ -277,6 +311,8 @@ async function uploadLecture(){
  })
 
  alert("Лекция создана")
+
+ loadSubjects()
 
 }
 

@@ -74,13 +74,19 @@ app.post("/api/upload-lecture", upload.single("audio"), async (req,res)=>{
 
   const text = result.data.result || "Ошибка распознавания"
 
+    let finalText = text
+
+    if(mode === "ai"){
+    finalText = await improveText(text)
+    }
+
   const date = new Date().toISOString().split("T")[0]
 
   const pdfPath = `data/${subject}/${date}.pdf`
 
-  const { createPDF } = require("./index")
+  const { createPDF, improveText } = require("./index")
 
-  createPDF(pdfPath,subject,date,text)
+  createPDF(pdfPath,subject,date,finalText)
 
   res.json({success:true})
 
@@ -117,6 +123,7 @@ app.get("/api/lectures/:subject",(req,res)=>{
  const fs = require("fs")
 
  const subject = req.params.subject
+ const mode = req.body.mode
 
  try{
 

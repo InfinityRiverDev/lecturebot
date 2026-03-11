@@ -836,5 +836,6 @@ ${JSON.stringify(errorText,null,2)}`
 
 module.exports = {
  bot,
- createPDF
+ createPDF,
+ improveText
 }
