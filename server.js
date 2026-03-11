@@ -96,8 +96,6 @@ app.post("/api/broadcast",(req,res)=>{
 
  const users = loadUsers()
 
- const bot = require("./index").bot
-
  Object.keys(users).forEach(id=>{
   bot.sendMessage(id,text)
  })
