@@ -185,6 +185,44 @@ app.post("/api/delete-subject",(req,res)=>{
 
 })
 
+app.get("/api/reports",(req,res)=>{
+
+ if(!fs.existsSync("reports.json")){
+  return res.json([])
+ }
+
+ const reports = JSON.parse(fs.readFileSync("reports.json"))
+
+ res.json(reports.slice(0,20))
+
+})
+
+app.post("/api/broadcast",async (req,res)=>{
+
+ const { text } = req.body
+
+ if(!text){
+  return res.json({error:"no text"})
+ }
+
+ const users = JSON.parse(fs.readFileSync("users.json"))
+
+ const ids = Object.keys(users)
+
+ let sent=0
+
+ for(const id of ids){
+
+  try{
+   await bot.sendMessage(id,text)
+   sent++
+  }catch(e){}
+ }
+
+ res.json({sent})
+
+})
+
 app.post(`/bot${BOT_TOKEN}`, (req,res)=>{
  bot.processUpdate(req.body)
  res.sendStatus(200)

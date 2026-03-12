@@ -126,11 +126,15 @@ function renderHome(data){
 
  <div class="header">⚙ Админ панель</div>
 
+ <button class="button" onclick="loadReports()">📊 Отчёты отметки</button>
+
  <button class="button" onclick="loadSubjects()">📚 Предметы</button>
 
  <button class="button" onclick="showCreateSubject()">➕ Создать предмет</button>
 
  <button class="button" onclick="showUploadLecture()">🎤 Добавить лекцию</button>
+
+ <button class="button" onclick="showBroadcast()">📢 Рассылка</button>
 
  `
 
@@ -211,6 +215,76 @@ async function openSubject(subject){
  })
 
  html+=`<button class="button back" onclick="loadSubjects()">⬅ Назад</button>`
+
+ app.innerHTML=html
+
+}
+
+function showBroadcast(){
+
+ const app=document.getElementById("app")
+
+ app.innerHTML=`
+
+ <div class="header">📢 Рассылка</div>
+
+ <textarea id="broadcastText"
+ style="width:100%;height:120px;padding:10px;border-radius:10px;border:1px solid #ddd"
+ placeholder="Введите сообщение"></textarea>
+
+ <br><br>
+
+ <button class="button" onclick="sendBroadcast()">Отправить</button>
+
+ <button class="button secondary" onclick="loadUser()">⬅ Назад</button>
+
+ `
+
+}
+
+async function sendBroadcast(){
+
+ const text=document.getElementById("broadcastText").value
+
+ const res = await fetch("/api/broadcast",{
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({text})
+ })
+
+ const data=await res.json()
+
+ alert("Отправлено: "+data.sent)
+
+ loadUser()
+
+}
+
+async function loadReports(){
+
+ const res = await fetch("/api/reports")
+ const reports = await res.json()
+
+ const app = document.getElementById("app")
+
+ let html=`<div class="header">📊 Отчёты</div>`
+
+ reports.forEach(r=>{
+
+ html+=`
+ <div class="card">
+
+ <b>Код:</b> ${r.code}<br>
+ ✅ Успешно: ${r.success}<br>
+ ❌ Ошибки: ${r.fail}<br>
+ 👥 Всего: ${r.total}<br>
+ <div class="small">${new Date(r.date).toLocaleString()}</div>
+
+ </div>
+ `
+ })
+
+ html+=`<button class="button" onclick="loadUser()">⬅ Назад</button>`
 
  app.innerHTML=html
 

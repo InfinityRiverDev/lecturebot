@@ -842,14 +842,31 @@ ${JSON.stringify(errorText,null,2)}`
  await Promise.all(requests)
 
  const report = `
-📊 Отчёт по отметке
+  📊 Отчёт по отметке
 
-Код: ${code}
+  Код: ${code}
 
-✅ Успешно: ${success}
-❌ Ошибки: ${fail}
-👥 Всего пользователей: ${userList.length}
-`
+  ✅ Успешно: ${success}
+  ❌ Ошибки: ${fail}
+  👥 Всего пользователей: ${userList.length}
+  `
+  const reportsPath = "reports.json"
+
+  let reports = []
+
+  if(fs.existsSync(reportsPath)){
+  reports = JSON.parse(fs.readFileSync(reportsPath))
+  }
+
+  reports.unshift({
+  code,
+  success,
+  fail,
+  total:userList.length,
+  date:new Date().toISOString()
+  })
+
+  fs.writeFileSync(reportsPath,JSON.stringify(reports,null,2))
 
  for(const admin of ADMIN_IDS){
 
