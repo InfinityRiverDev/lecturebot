@@ -62,7 +62,7 @@ async function getToken(login,password){
 }
 
 function isAdmin(id){
- return ADMIN_IDS.includes(id)
+ return ADMIN_IDS.map(Number).includes(Number(id))
 }
 
 async function isAuthorized(id){
@@ -295,40 +295,17 @@ if(authState[userId] && typeof authState[userId]==="object"){
       return
     }
 
-  if(login===ADMIN_LOGIN && pass===ADMIN_PASSWORD && isAdmin(userId)){
+    await User.create({
+      telegramId:userId,
+      login,
+      password:pass,
+      token,
+      role:"user"
+      })
 
-   await User.create({
+      authState[userId]=null
 
-    telegramId:userId,
-    login,
-    password:pass,
-    token,
-    role:"admin"
-
-    })
-
-
-   authState[userId]=null
-
-   bot.sendMessage(chatId,"✅ Вы вошли как админ")
-
-  }else{
-
-   await User.create({
-
-    telegramId:userId,
-    login,
-    password:pass,
-    token,
-    role:"user"
-
-    })
-
-
-   authState[userId]=null
-
-   bot.sendMessage(chatId,"✅ Регистрация завершена")
-  }
+      bot.sendMessage(chatId,"✅ Регистрация завершена")
 
   bot.sendMessage(chatId,
   `👋 Добро пожаловать!
@@ -830,7 +807,7 @@ bot.on("message", async msg => {
  console.log(`API ответ для пользователя ${userId}:`, errorText)
 
  for(const admin of ADMIN_IDS){
-
+ try{
   await bot.sendMessage(admin,
 `⚠️ Пользователь не отмечен
 
@@ -842,9 +819,11 @@ ${code}
 
 Ответ API:
 ${JSON.stringify(errorText,null,2)}`
-  )
-
+ )
+ }catch(e){
+  console.log("Админ не найден:", admin)
  }
+}
 
 }
 
