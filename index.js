@@ -149,12 +149,37 @@ function createPDF(path, subject, date, text){
 }
 
 
-// START
-bot.onText(/\/start/, async msg=>{
+bot.onText(/\/start/, async msg => {
 
  const id = msg.from.id
  const chatId = msg.chat.id
 
+ // если админ
+ if(isAdmin(id)){
+
+  bot.sendMessage(chatId,
+`👋 Привет, админ!
+
+Открой приложение чтобы управлять лекциями.`,
+{
+ reply_markup:{
+  inline_keyboard:[
+   [
+    {
+     text:"📚 Открыть лекции",
+     web_app:{
+      url:"https://app.kstubot.ru"
+     }
+    }
+   ]
+  ]
+ }
+})
+
+ return
+ }
+
+ // если обычный пользователь уже зарегистрирован
  if(await isAuthorized(id)){
 
   bot.sendMessage(chatId,
@@ -164,21 +189,22 @@ bot.onText(/\/start/, async msg=>{
 {
  reply_markup:{
   inline_keyboard:[
-    [
+   [
     {
-      text:"📚 Открыть лекции",
-      web_app:{
+     text:"📚 Открыть лекции",
+     web_app:{
       url:"https://app.kstubot.ru"
-      }
+     }
     }
-    ]
+   ]
   ]
-  }
+ }
 })
 
  return
  }
 
+ // если не зарегистрирован
  authState[id] = "login"
 
  bot.sendMessage(chatId,
