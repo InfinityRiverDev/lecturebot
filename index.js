@@ -21,9 +21,6 @@ if(!fs.existsSync("data")){
 
 let authState = {}
 
-const ADMIN_LOGIN="admin"
-const ADMIN_PASSWORD="admin123"
-
 let adminState={}
 let adminAudio={}
 let pendingLecture={}
@@ -94,7 +91,7 @@ bot.setMyCommands(
 {
  scope:{
   type:"chat",
-  chat_id:ADMIN_IDS[0]
+  chat_id:String(ADMIN_IDS[0])
  }
 }
 )
@@ -110,7 +107,7 @@ bot.setMyCommands(
 {
  scope:{
   type:"chat",
-  chat_id:ADMIN_IDS[1]
+  chat_id:String(ADMIN_IDS[1])
  }
 }
 )
