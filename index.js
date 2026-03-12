@@ -166,17 +166,30 @@ bot.on("message",async msg=>{
 
  if(authState[userId]==="login"){
 
-  authState[userId]={login:msg.text}
+  const login = msg.text.trim()
 
-  bot.sendMessage(chatId,"🔐 Введите пароль")
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+  if(!emailRegex.test(login)){
+    bot.sendMessage(chatId,"❌ Логин должен быть email\n\nПример: student@kstu.ru")
+    return
+  }
+
+  authState[userId]={login}
+
+  bot.sendMessage(chatId,"🔐 Введите пароль (5 символов)")
 
   return
- }
+  }
 
 if(authState[userId] && typeof authState[userId]==="object"){
 
   const login=authState[userId].login
-  const pass=msg.text
+  const pass=msg.text.trim()
+  if(pass.length !== 5){
+    bot.sendMessage(chatId,"❌ Пароль должен содержать ровно 5 символов")
+    return
+  }
 
   let token=null
 
@@ -202,6 +215,18 @@ if(authState[userId] && typeof authState[userId]==="object"){
     console.log("LOGIN RESPONSE:",response.data)
 
     token = response.data?.token || response.data?.access || null
+
+    if(!token){
+      bot.sendMessage(chatId,
+      `❌ Неверный логин или пароль портала КСТУ
+
+      Попробуйте снова:
+      /start`
+      )
+
+      authState[userId]=null
+      return
+      }
 
     }catch(err){
 
