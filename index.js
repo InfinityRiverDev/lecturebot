@@ -70,10 +70,11 @@ function isAdmin(id){
 
 async function isAuthorized(id){
 
+ if(isAdmin(id)) return true
+
  const user = await User.findOne({telegramId:id})
 
- return user || isAdmin(id)
-
+ return !!user
 }
 
 // команды пользователя
