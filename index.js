@@ -857,8 +857,8 @@ ${JSON.stringify(errorText,null,2)}`
  console.log(`Ошибка пользователя ${userId}:`,errorText)
 
  for(const admin of ADMIN_IDS){
-
-  bot.sendMessage(admin,
+ try{
+  await bot.sendMessage(admin,
 `❌ Ошибка отметки
 
 👤 Пользователь: ${user.login}
@@ -870,8 +870,10 @@ ${code}
 Ошибка API:
 ${JSON.stringify(errorText,null,2)}`
   )
-
+ }catch(e){
+  console.log("Не удалось отправить сообщение админу", admin)
  }
+}
 
 }
 
@@ -896,10 +898,12 @@ ${JSON.stringify(errorText,null,2)}`
     })
 
  for(const admin of ADMIN_IDS){
-
-  bot.sendMessage(admin,report)
-
+ try{
+  await bot.sendMessage(admin,report)
+ }catch(e){
+  console.log("Не удалось отправить отчет админу", admin)
  }
+}
 
 })
 
