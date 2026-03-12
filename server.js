@@ -222,11 +222,13 @@ app.get("/",(req,res)=>{
 
 const PORT = process.env.PORT || 3000
 
-app.listen(PORT, async ()=>{
+app.listen(PORT, async () => {
 
  console.log("🌐 Server started")
 
  const url = `https://app.kstubot.ru/bot${BOT_TOKEN}`
+
+ await bot.deleteWebHook()
 
  await bot.setWebHook(url)
 
