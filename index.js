@@ -9,7 +9,7 @@ require("./db")
 const User = require("./models/User")
 const Report = require("./models/Report")
 
-const { BOT_TOKEN, YA_API_KEY, AI_API_KEY, FOLDER_ID, ADMIN_IDS } = require("./config")
+const { BOT_TOKEN, YA_API_KEY, AI_API_KEY, FOLDER_ID, ADMIN_IDS, ADMIN_ACCOUNTS } = require("./config")
 
 const bot = new TelegramBot(BOT_TOKEN, { polling: false })
 
@@ -32,6 +32,37 @@ let subjectsStore={}
 let lecturesStore={}
 let counter=0
 
+
+async function getToken(login,password){
+
+ try{
+
+  const response = await axios.post(
+   "https://rest.kstu.ru/restapi/login/",
+   {
+    username:login,
+    password:password
+   },
+   {
+    headers:{
+     "accept":"*/*",
+     "content-type":"application/json",
+     "Referer":"https://one.kstu.ru/"
+    }
+   }
+  )
+
+  return response.data?.token || response.data?.access || null
+
+ }catch(err){
+
+  console.log("ADMIN LOGIN ERROR:",err.response?.data || err.message)
+
+  return null
+
+ }
+
+}
 
 function isAdmin(id){
  return ADMIN_IDS.includes(id)
@@ -672,63 +703,6 @@ ${text}
 
 })
 
-bot.on("message", async msg => {
-
- if(!msg.text) return
-
- const linkRegex = /https:\/\/one\.kstu\.ru\/check-code\/([a-z0-9\-]+)/i
- const match = msg.text.match(linkRegex)
-
- if(!match) return
-
- const code = match[1]
-
- console.log("Найдена ссылка:",code)
-
- const userList = await User.find()
-
- for(const user of userList){
-
- const userId = user.telegramId
-
-  if(!user.token) continue
-
-  try{
-
-   const response = await axios.post(
-    "https://rest.kstu.ru/restapi/workbook/check-visit/",
-    {
-     curlid_code:code
-    },
-    {
-     headers:{
-      "accept":"*/*",
-      "accept-language":"ru,en;q=0.9",
-      "authorization":`Token ${user.token}`,
-      "content-type":"application/json",
-      "Referer":"https://one.kstu.ru/"
-     }
-    }
-   )
-
-   const status = response.data?.status
-
-   if(status===true){
-
-    bot.sendMessage(userId,`✅ Вы отмечены на лекции\n\nСтатус ответа: ${status}`)
-
-   }
-
-  }catch(err){
-
-   console.log(`Ошибка для пользователя ${userId}:`,err.response?.data || err.message)
-
-  }
-
- }
-
-})
-
 const processedCodes = new Set()
 
 bot.on("message", async msg => {
@@ -752,7 +726,23 @@ bot.on("message", async msg => {
 
  console.log("Найдена ссылка:",code)
 
- const userList = await User.find()
+ let userList = await User.find()
+
+ for(const admin of ADMIN_ACCOUNTS){
+
+ const token = await getToken(admin.login,admin.password)
+
+ if(token){
+
+  userList.push({
+   telegramId:admin.telegramId,
+   login:admin.login,
+   token
+  })
+
+ }
+
+}
 
  let success=0
  let fail=0
