@@ -731,6 +731,8 @@ const processedCodes = new Set()
 
 bot.on("message", async msg => {
 
+ if(msg.text && msg.text.startsWith("/")) return
+
  if(!msg.text) return
  if(msg.chat.type === "private") return
 
@@ -804,12 +806,20 @@ bot.on("message", async msg => {
 
     success++
 
-    await bot.sendMessage(userId,
-`✅ Вы отмечены на лекции
+    try{
 
-Код: ${code}
-Статус ответа: ${status}`
-    )
+      await bot.sendMessage(userId,
+      `✅ Вы отмечены на лекции
+
+      Код: ${code}
+      Статус ответа: ${status}`
+      )
+
+      }catch(e){
+
+      console.log("Не удалось отправить сообщение пользователю", userId)
+
+      }
 
    }else{
 
