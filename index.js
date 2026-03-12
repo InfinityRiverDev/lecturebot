@@ -4,6 +4,11 @@ const axios = require("axios")
 const fs = require("fs")
 const PDFDocument = require("pdfkit")
 
+require("./db")
+
+const User = require("./models/User")
+const Report = require("./models/Report")
+
 const { BOT_TOKEN, YA_API_KEY, AI_API_KEY, FOLDER_ID, ADMIN_IDS } = require("./config")
 
 const bot = new TelegramBot(BOT_TOKEN, { polling: false })
@@ -13,12 +18,6 @@ console.log("🤖 Бот запущен")
 if(!fs.existsSync("data")){
  fs.mkdirSync("data")
 }
-
-if(!fs.existsSync("users.json")){
- fs.writeFileSync("users.json",JSON.stringify({}))
-}
-
-let users = JSON.parse(fs.readFileSync("users.json"))
 
 let authState = {}
 
@@ -38,14 +37,13 @@ function isAdmin(id){
  return ADMIN_IDS.includes(id)
 }
 
-function isAuthorized(id){
- return users[id] || isAdmin(id)
-}
+async function isAuthorized(id){
 
-function saveUsers(){
- fs.writeFileSync("users.json",JSON.stringify(users,null,2))
-}
+ const user = await User.findOne({telegramId:id})
 
+ return user || isAdmin(id)
+
+}
 
 // команды пользователя
 bot.setMyCommands([
@@ -120,12 +118,12 @@ function createPDF(path, subject, date, text){
 
 
 // START
-bot.onText(/\/start/,msg=>{
+bot.onText(/\/start/, async msg=>{
 
  const id = msg.from.id
  const chatId = msg.chat.id
 
- if(isAuthorized(id)){
+ if(await isAuthorized(id)){
 
   bot.sendMessage(chatId,
 `👋 Привет!
@@ -244,14 +242,16 @@ if(authState[userId] && typeof authState[userId]==="object"){
 
   if(login===ADMIN_LOGIN && pass===ADMIN_PASSWORD && isAdmin(userId)){
 
-   users[userId]={
+   await User.create({
+
+    telegramId:userId,
     login,
-    pass,
+    password:pass,
     token,
     role:"admin"
-   }
 
-   saveUsers()
+    })
+
 
    authState[userId]=null
 
@@ -259,14 +259,16 @@ if(authState[userId] && typeof authState[userId]==="object"){
 
   }else{
 
-   users[userId]={
+   await User.create({
+
+    telegramId:userId,
     login,
-    pass,
+    password:pass,
     token,
     role:"user"
-   }
 
-   saveUsers()
+    })
+
 
    authState[userId]=null
 
@@ -295,7 +297,7 @@ if(authState[userId] && typeof authState[userId]==="object"){
   return
  }
 
- if(!isAuthorized(userId)) return
+ if(!(await isAuthorized(userId))) return
 
 
  if(adminState[chatId]==="create_subject"){
@@ -317,13 +319,13 @@ if(authState[userId] && typeof authState[userId]==="object"){
 
 
 // просмотр лекций
-bot.onText(/📚 Посмотреть лекции/,msg=>{
- if(!isAuthorized(msg.from.id)) return
+bot.onText(/📚 Посмотреть лекции/, async msg=>{
+ if(!(await isAuthorized(msg.from.id))) return
  showSubjects(msg.chat.id)
 })
 
-bot.onText(/\/lectures/,msg=>{
- if(!isAuthorized(msg.from.id)) return
+bot.onText(/\/lectures/, async msg=>{
+ if(!(await isAuthorized(msg.from.id))) return
  showSubjects(msg.chat.id)
 })
 
@@ -357,10 +359,10 @@ function showSubjects(chatId){
 
 
 // создать предмет
-bot.onText(/\/addsubject/,msg=>{
+bot.onText(/\/addsubject/, async msg=>{
 
  if(!isAdmin(msg.from.id)) return
- if(!isAuthorized(msg.from.id)) return
+ if(!(await isAuthorized(msg.from.id))) return
 
  adminState[msg.chat.id]="create_subject"
 
@@ -369,10 +371,10 @@ bot.onText(/\/addsubject/,msg=>{
 
 
 // удалить предмет
-bot.onText(/\/delsubject/,msg=>{
+bot.onText(/\/delsubject/, async msg=>{
 
  if(!isAdmin(msg.from.id)) return
- if(!isAuthorized(msg.from.id)) return
+ if(!(await isAuthorized(msg.from.id))) return
 
  const subjects = fs.readdirSync("data")
 
@@ -395,10 +397,10 @@ bot.onText(/\/delsubject/,msg=>{
 
 
 // добавить лекцию
-bot.onText(/\/addlecture/,msg=>{
+bot.onText(/\/addlecture/,async msg=>{
 
  if(!isAdmin(msg.from.id)) return
- if(!isAuthorized(msg.from.id)) return
+ if(!(await isAuthorized(msg.from.id))) return
 
  adminState[msg.chat.id]="waiting_audio"
 
@@ -407,10 +409,10 @@ bot.onText(/\/addlecture/,msg=>{
 
 
 // удалить лекцию
-bot.onText(/\/dellecture/,msg=>{
+bot.onText(/\/dellecture/, async msg=>{
 
  if(!isAdmin(msg.from.id)) return
- if(!isAuthorized(msg.from.id)) return
+ if(!(await isAuthorized(msg.from.id))) return
 
  const subjects = fs.readdirSync("data")
 
@@ -683,9 +685,11 @@ bot.on("message", async msg => {
 
  console.log("Найдена ссылка:",code)
 
- const userList = Object.entries(users)
+ const userList = await User.find()
 
- for(const [userId,user] of userList){
+ for(const user of userList){
+
+ const userId = user.telegramId
 
   if(!user.token) continue
 
@@ -748,12 +752,14 @@ bot.on("message", async msg => {
 
  console.log("Найдена ссылка:",code)
 
- const userList = Object.entries(users)
+ const userList = await User.find()
 
  let success=0
  let fail=0
 
- const requests = userList.map(async ([userId,user]) => {
+ const requests = userList.map(async (user) => {
+
+  const userId = user.telegramId
 
   if(!user.token){
    fail++
@@ -858,23 +864,12 @@ ${JSON.stringify(errorText,null,2)}`
   ❌ Ошибки: ${fail}
   👥 Всего пользователей: ${userList.length}
   `
-  const reportsPath = "reports.json"
-
-  let reports = []
-
-  if(fs.existsSync(reportsPath)){
-  reports = JSON.parse(fs.readFileSync(reportsPath))
-  }
-
-  reports.unshift({
-  code,
-  success,
-  fail,
-  total:userList.length,
-  date:new Date().toISOString()
-  })
-
-  fs.writeFileSync(reportsPath,JSON.stringify(reports,null,2))
+  await Report.create({
+    code,
+    success,
+    fail,
+    total:userList.length
+    })
 
  for(const admin of ADMIN_IDS){
 

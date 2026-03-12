@@ -1,5 +1,12 @@
 require("dotenv").config()
 
+require("./db")
+
+const User = require("./models/User")
+const Report = require("./models/Report")
+const Subject = require("./models/Subject")
+const Lecture = require("./models/Lecture")
+
 const express = require("express")
 const path = require("path")
 const bodyParser = require("body-parser")
@@ -19,7 +26,7 @@ app.use(bodyParser.json())
 const fs = require("fs")
 const { ADMIN_IDS } = require("./config")
 
-app.post("/api/me",(req,res)=>{
+app.post("/api/me", async (req,res)=>{
 
  const { id } = req.body
 
@@ -27,27 +34,25 @@ app.post("/api/me",(req,res)=>{
   return res.json({error:"no id"})
  }
 
- // если админ
  if(ADMIN_IDS.includes(Number(id))){
-  return res.json({
-   role:"admin"
-  })
+  return res.json({role:"admin"})
  }
 
- const users = JSON.parse(fs.readFileSync("users.json"))
-
- const user = users[id]
+ const user = await User.findOne({telegramId:id})
 
  if(!user){
   return res.json({role:"guest"})
  }
 
  res.json({
-  role:"user",
+  role:user.role,
   login:user.login
  })
 
 })
+
+
+
 
 app.post("/api/upload-lecture", upload.single("audio"), async (req,res)=>{
 
@@ -96,6 +101,11 @@ app.post("/api/upload-lecture", upload.single("audio"), async (req,res)=>{
 
   createPDF(pdfPath,subject,date,finalText)
 
+  await Lecture.create({
+    subject,
+    filename:`${date}.pdf`
+    })
+
   res.json({success:true})
 
  }catch(err){
@@ -108,66 +118,25 @@ app.post("/api/upload-lecture", upload.single("audio"), async (req,res)=>{
 
 })
 
-app.get("/api/subjects",(req,res)=>{
+app.get("/api/subjects", async (req,res)=>{
 
- const fs = require("fs")
+ const subjects = await Subject.find()
 
- try{
-
-  const subjects = fs.readdirSync("data")
-
-  res.json(subjects)
-
- }catch(err){
-
-  res.json([])
-
- }
+ res.json(subjects.map(s=>s.name))
 
 })
 
-app.get("/api/lectures/:subject",(req,res)=>{
-
- const fs = require("fs")
+app.get("/api/lectures/:subject", async (req,res)=>{
 
  const subject = req.params.subject
 
- try{
+ const lectures = await Lecture.find({subject})
 
-  const lectures = fs.readdirSync(`data/${subject}`)
-
-  res.json(lectures)
-
- }catch(err){
-
-  res.json([])
-
- }
+ res.json(lectures.map(l=>l.filename))
 
 })
 
-app.post("/api/create-subject",(req,res)=>{
-
- const fs = require("fs")
- const { subject } = req.body
-
- if(!subject){
-  return res.json({error:"no subject"})
- }
-
- const path = `data/${subject}`
-
- if(!fs.existsSync(path)){
-  fs.mkdirSync(path)
- }
-
- res.json({success:true})
-
-})
-
-app.post("/api/delete-subject",(req,res)=>{
-
- const fs = require("fs")
+app.post("/api/create-subject", async (req,res)=>{
 
  const { subject } = req.body
 
@@ -175,29 +144,46 @@ app.post("/api/delete-subject",(req,res)=>{
   return res.json({error:"no subject"})
  }
 
- const path = `data/${subject}`
+ await Subject.create({name:subject})
 
- if(fs.existsSync(path)){
-  fs.rmSync(path,{recursive:true,force:true})
+ if(!fs.existsSync(`data/${subject}`)){
+  fs.mkdirSync(`data/${subject}`)
  }
 
  res.json({success:true})
 
 })
 
-app.get("/api/reports",(req,res)=>{
+app.post("/api/delete-subject", async (req,res)=>{
 
- if(!fs.existsSync("reports.json")){
-  return res.json([])
+ const { subject } = req.body
+
+ if(!subject){
+  return res.json({error:"no subject"})
  }
 
- const reports = JSON.parse(fs.readFileSync("reports.json"))
+ await Subject.deleteOne({name:subject})
 
- res.json(reports.slice(0,20))
+ if(fs.existsSync(`data/${subject}`)){
+  fs.rmSync(`data/${subject}`,{recursive:true,force:true})
+ }
+
+ res.json({success:true})
 
 })
 
-app.post("/api/broadcast",async (req,res)=>{
+app.get("/api/reports", async (req,res)=>{
+
+ const reports = await Report
+  .find()
+  .sort({createdAt:-1})
+  .limit(20)
+
+ res.json(reports)
+
+})
+
+app.post("/api/broadcast", async (req,res)=>{
 
  const { text } = req.body
 
@@ -205,18 +191,17 @@ app.post("/api/broadcast",async (req,res)=>{
   return res.json({error:"no text"})
  }
 
- const users = JSON.parse(fs.readFileSync("users.json"))
-
- const ids = Object.keys(users)
+ const users = await User.find()
 
  let sent=0
 
- for(const id of ids){
+ for(const u of users){
 
   try{
-   await bot.sendMessage(id,text)
+   await bot.sendMessage(u.telegramId,text)
    sent++
   }catch(e){}
+
  }
 
  res.json({sent})
