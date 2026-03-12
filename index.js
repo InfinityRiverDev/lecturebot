@@ -231,7 +231,15 @@ if(authState[userId] && typeof authState[userId]==="object"){
     }catch(err){
 
     console.log("LOGIN API ERROR:",err.response?.data || err.message)
+      bot.sendMessage(chatId,
+      `❌ Неверный логин или пароль портала КСТУ
 
+      Попробуйте снова:
+      /start`
+      )
+
+      authState[userId]=null
+      return
     }
 
   if(login===ADMIN_LOGIN && pass===ADMIN_PASSWORD && isAdmin(userId)){
