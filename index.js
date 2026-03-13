@@ -13,6 +13,39 @@ const { BOT_TOKEN, YA_API_KEY, AI_API_KEY, FOLDER_ID, ADMIN_IDS, ADMIN_ACCOUNTS 
 
 const bot = new TelegramBot(BOT_TOKEN, { polling: false })
 
+setTimeout(async () => {
+    console.log("🔍 Проверка админов...");
+    for(const adminId of ADMIN_IDS) {
+        try {
+            await bot.sendChatAction(adminId, 'typing');
+            console.log(`✅ Админ ${adminId} доступен`);
+        } catch {
+            console.log(`⚠️ Админ ${adminId} НЕ НАЧИНАЛ ДИАЛОГ! Отправьте /start боту`);
+        }
+    }
+}, 3000);
+
+// Добавьте после создания bot
+async function safeSendMessage(userId, text, options = {}) {
+    try {
+        await bot.sendMessage(userId, text, options);
+        return true;
+    } catch (error) {
+        if (error.code === 'ETELEGRAM') {
+            if (error.message.includes('chat not found')) {
+                console.log(`⚠️ Чат с пользователем ${userId} не найден. Отправьте /start боту.`);
+            } else if (error.message.includes('blocked')) {
+                console.log(`🚫 Пользователь ${userId} заблокировал бота`);
+            } else {
+                console.log(`❌ Ошибка Telegram для ${userId}:`, error.message);
+            }
+        } else {
+            console.log(`❌ Неизвестная ошибка для ${userId}:`, error.message);
+        }
+        return false;
+    }
+}
+
 console.log("🤖 Бот запущен")
 
 if(!fs.existsSync("data")){
@@ -158,7 +191,7 @@ bot.onText(/\/start/, async msg => {
  // если админ
  if(isAdmin(id)){
 
-  bot.sendMessage(chatId,
+  safeSendMessage(chatId,
 `👋 Привет, админ!
 
 Открой приложение чтобы управлять лекциями.`,
@@ -183,7 +216,7 @@ bot.onText(/\/start/, async msg => {
  // если обычный пользователь уже зарегистрирован
  if(await isAuthorized(id)){
 
-  bot.sendMessage(chatId,
+  safeSendMessage(chatId,
 `👋 Привет!
 
 Открой приложение чтобы смотреть лекции.`,
@@ -208,7 +241,7 @@ bot.onText(/\/start/, async msg => {
  // если не зарегистрирован
  authState[id] = "login"
 
- bot.sendMessage(chatId,
+ safeSendMessage(chatId,
 `🔐 Регистрация
 
 Введите логин от портала КСТУ`)
@@ -228,13 +261,13 @@ bot.on("message",async msg=>{
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
   if(!emailRegex.test(login)){
-    bot.sendMessage(chatId,"❌ Логин должен быть email\n\nПример: student@kstu.ru")
+    safeSendMessage(chatId,"❌ Логин должен быть email\n\nПример: student@kstu.ru")
     return
   }
 
   authState[userId]={login}
 
-  bot.sendMessage(chatId,"🔐 Введите пароль (5 символов)")
+  safeSendMessage(chatId,"🔐 Введите пароль (5 символов)")
 
   return
   }
@@ -244,7 +277,7 @@ if(authState[userId] && typeof authState[userId]==="object"){
   const login=authState[userId].login
   const pass=msg.text.trim()
   if(pass.length !== 5){
-    bot.sendMessage(chatId,"❌ Пароль должен содержать ровно 5 символов")
+    safeSendMessage(chatId,"❌ Пароль должен содержать ровно 5 символов")
     return
   }
 
@@ -274,7 +307,7 @@ if(authState[userId] && typeof authState[userId]==="object"){
     token = response.data?.token || response.data?.access || null
 
     if(!token){
-      bot.sendMessage(chatId,
+      safeSendMessage(chatId,
       `❌ Неверный логин или пароль портала КСТУ
 
       Попробуйте снова:
@@ -288,7 +321,7 @@ if(authState[userId] && typeof authState[userId]==="object"){
     }catch(err){
 
     console.log("LOGIN API ERROR:",err.response?.data || err.message)
-      bot.sendMessage(chatId,
+      safeSendMessage(chatId,
       `❌ Неверный логин или пароль портала КСТУ
 
       Попробуйте снова:
@@ -309,9 +342,9 @@ if(authState[userId] && typeof authState[userId]==="object"){
 
       authState[userId]=null
 
-      bot.sendMessage(chatId,"✅ Регистрация завершена")
+      safeSendMessage(chatId,"✅ Регистрация завершена")
 
-  bot.sendMessage(chatId,
+  safeSendMessage(chatId,
   `👋 Добро пожаловать!
 
   Открой приложение чтобы смотреть лекции.`,
@@ -346,7 +379,7 @@ if(authState[userId] && typeof authState[userId]==="object"){
    fs.mkdirSync(`data/${subject}`)
   }
 
-  bot.sendMessage(chatId,"✅ Предмет создан")
+  safeSendMessage(chatId,"✅ Предмет создан")
 
   adminState[chatId]=null
  }
@@ -371,7 +404,7 @@ function showSubjects(chatId){
  const subjects = fs.readdirSync("data")
 
  if(subjects.length===0){
-  bot.sendMessage(chatId,"❌ Пока нет лекций")
+  safeSendMessage(chatId,"❌ Пока нет лекций")
   return
  }
 
@@ -387,7 +420,7 @@ function showSubjects(chatId){
   }]
  })
 
- bot.sendMessage(chatId,"📚 Выберите предмет",{
+ safeSendMessage(chatId,"📚 Выберите предмет",{
   reply_markup:{inline_keyboard:buttons}
  })
 
@@ -402,7 +435,7 @@ bot.onText(/\/addsubject/, async msg=>{
 
  adminState[msg.chat.id]="create_subject"
 
- bot.sendMessage(msg.chat.id,"Введите название предмета")
+ safeSendMessage(msg.chat.id,"Введите название предмета")
 })
 
 
@@ -426,7 +459,7 @@ bot.onText(/\/delsubject/, async msg=>{
   }]
  })
 
- bot.sendMessage(msg.chat.id,"Выберите предмет для удаления",{
+ safeSendMessage(msg.chat.id,"Выберите предмет для удаления",{
   reply_markup:{inline_keyboard:buttons}
  })
 })
@@ -440,7 +473,7 @@ bot.onText(/\/addlecture/,async msg=>{
 
  adminState[msg.chat.id]="waiting_audio"
 
- bot.sendMessage(msg.chat.id,"🎤 Отправьте голосовое сообщение")
+ safeSendMessage(msg.chat.id,"🎤 Отправьте голосовое сообщение")
 })
 
 
@@ -464,7 +497,7 @@ bot.onText(/\/dellecture/, async msg=>{
   }]
  })
 
- bot.sendMessage(msg.chat.id,"Выберите предмет",{
+ safeSendMessage(msg.chat.id,"Выберите предмет",{
   reply_markup:{inline_keyboard:buttons}
  })
 })
@@ -492,7 +525,7 @@ bot.on("voice",msg=>{
   }]
  })
 
- bot.sendMessage(msg.chat.id,"📂 Выберите предмет",{
+ safeSendMessage(msg.chat.id,"📂 Выберите предмет",{
   reply_markup:{inline_keyboard:buttons}
  })
 })
@@ -559,7 +592,7 @@ bot.on("callback_query",async query=>{
    }]
   })
 
-  bot.sendMessage(chatId,"📅 Выберите лекцию",{
+  safeSendMessage(chatId,"📅 Выберите лекцию",{
    reply_markup:{inline_keyboard:buttons}
   })
  }
@@ -585,7 +618,7 @@ bot.on("callback_query",async query=>{
 
   fs.rmSync(`data/${subject}`,{recursive:true,force:true})
 
-  bot.sendMessage(chatId,"🗑 Предмет удалён")
+  safeSendMessage(chatId,"🗑 Предмет удалён")
  }
 
 
@@ -607,7 +640,7 @@ bot.on("callback_query",async query=>{
    }]
   })
 
-  bot.sendMessage(chatId,"Выберите лекцию для удаления",{
+  safeSendMessage(chatId,"Выберите лекцию для удаления",{
    reply_markup:{inline_keyboard:buttons}
   })
  }
@@ -619,7 +652,7 @@ bot.on("callback_query",async query=>{
 
   fs.unlinkSync(`data/${lecture.subject}/${lecture.file}`)
 
-  bot.sendMessage(chatId,"🗑 Лекция удалена")
+  safeSendMessage(chatId,"🗑 Лекция удалена")
  }
 
 
@@ -629,7 +662,7 @@ bot.on("callback_query",async query=>{
 
    const subject=subjectsStore[data]
 
-   bot.sendMessage(chatId,"🎧 Распознаю аудио...")
+   safeSendMessage(chatId,"🎧 Распознаю аудио...")
 
    const file=await bot.getFile(adminAudio[chatId])
 
@@ -656,7 +689,7 @@ bot.on("callback_query",async query=>{
 
    pendingLecture[chatId]={subject,text}
 
-   bot.sendMessage(chatId,
+   safeSendMessage(chatId,
 `📝 Текст распознан:
 
 ${text}
@@ -675,7 +708,7 @@ ${text}
 
    console.log(err)
 
-   bot.sendMessage(chatId,"Ошибка распознавания")
+   safeSendMessage(chatId,"Ошибка распознавания")
   }
  }
 
@@ -690,7 +723,7 @@ ${text}
 
   createPDF(path,lecture.subject,date,lecture.text)
 
-  bot.sendMessage(chatId,"✅ Лекция сохранена")
+  safeSendMessage(chatId,"✅ Лекция сохранена")
  }
 
 
@@ -706,7 +739,7 @@ ${text}
 
   createPDF(path,lecture.subject,date,newText)
 
-  bot.sendMessage(chatId,"✅ Лекция сохранена")
+  safeSendMessage(chatId,"✅ Лекция сохранена")
  }
 
 })
@@ -792,7 +825,7 @@ bot.on("message", async msg => {
 
     try{
 
-      await bot.sendMessage(userId,
+      await safeSendMessage(userId,
       `✅ Вы отмечены на лекции
 
       Код: ${code}
@@ -815,7 +848,7 @@ bot.on("message", async msg => {
 
  for(const admin of ADMIN_IDS){
  try{
-  await bot.sendMessage(admin,
+  await safeSendMessage(admin,
 `⚠️ Пользователь не отмечен
 
 👤 Пользователь: ${user.login}
@@ -844,7 +877,7 @@ ${JSON.stringify(errorText,null,2)}`
 
  for(const admin of ADMIN_IDS){
  try{
-  await bot.sendMessage(admin,
+  await safeSendMessage(admin,
 `❌ Ошибка отметки
 
 👤 Пользователь: ${user.login}
@@ -885,7 +918,7 @@ ${JSON.stringify(errorText,null,2)}`
 
  for(const admin of ADMIN_IDS){
  try{
-  await bot.sendMessage(admin,report)
+  await safeSendMessage(admin,report)
  }catch(e){
   console.log("Не удалось отправить отчет админу", admin)
  }
