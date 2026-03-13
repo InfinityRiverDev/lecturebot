@@ -13,6 +13,8 @@ const { BOT_TOKEN, YA_API_KEY, AI_API_KEY, FOLDER_ID, ADMIN_IDS, ADMIN_ACCOUNTS 
 
 const bot = new TelegramBot(BOT_TOKEN, { polling: false })
 
+console.log("iiiidddddd", ADMIN_IDS)
+
 setTimeout(async () => {
     console.log("🔍 Проверка админов...");
     for(const adminId of ADMIN_IDS) {
