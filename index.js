@@ -19,6 +19,10 @@ if(!fs.existsSync("data")){
  fs.mkdirSync("data")
 }
 
+process.on("unhandledRejection",err=>{
+ console.log("UNHANDLED ERROR:",err.message)
+})
+
 let authState = {}
 
 let adminState={}
@@ -531,7 +535,6 @@ async function improveText(text){
  }
 }
 
-
 // callback
 bot.on("callback_query",async query=>{
 
@@ -568,7 +571,11 @@ bot.on("callback_query",async query=>{
 
   const path=`data/${lecture.subject}/${lecture.file}`
 
-  bot.sendDocument(chatId,path)
+  try{
+  await bot.sendDocument(chatId,path)
+  }catch(e){
+  console.log("Не удалось отправить документ:", chatId)
+  }
  }
 
 

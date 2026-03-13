@@ -185,29 +185,28 @@ app.get("/api/reports", async (req,res)=>{
 
 app.post("/api/broadcast", async (req,res)=>{
 
- const { text } = req.body
+ const {text} = req.body
+ const users = loadUsers()
 
- if(!text){
-  return res.json({error:"no text"})
- }
+ const bot = require("./index").bot
 
- const users = await User.find()
-
- let sent=0
-
- for(const u of users){
+ for(const id of Object.keys(users)){
 
   try{
-   await bot.sendMessage(u.telegramId,text)
-   sent++
-  }catch(e){}
+
+   await bot.sendMessage(id,text)
+
+  }catch(err){
+
+   console.log("Ошибка отправки:",id)
+
+  }
 
  }
 
- res.json({sent})
+ res.json({success:true})
 
 })
-
 app.post(`/bot${BOT_TOKEN}`, (req,res)=>{
  bot.processUpdate(req.body)
  res.sendStatus(200)
