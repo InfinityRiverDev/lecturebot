@@ -13,7 +13,7 @@ const { BOT_TOKEN, YA_API_KEY, AI_API_KEY, FOLDER_ID, ADMIN_IDS, ADMIN_ACCOUNTS 
 
 const bot = new TelegramBot(BOT_TOKEN, { polling: false })
 
-console.log("iiiidddddd", ADMIN_IDS)
+
 
 setTimeout(async () => {
     console.log("🔍 Проверка админов...");
@@ -22,6 +22,7 @@ setTimeout(async () => {
             await bot.sendChatAction(adminId, 'typing');
             console.log(`✅ Админ ${adminId} доступен`);
         } catch {
+            console.log("iiiidddddd", ADMIN_IDS)
             console.log(`⚠️ Админ ${adminId} НЕ НАЧИНАЛ ДИАЛОГ! Отправьте /start боту`);
         }
     }
